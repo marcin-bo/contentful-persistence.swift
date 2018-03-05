@@ -98,37 +98,38 @@ class ComplexSyncTests: XCTestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
         OHHTTPStubs.removeAllStubs()
 
-        // ============================NEXT SYNC==================================================
-        let nextExpectation = self.expectation(description: "Next sync expectation")
-
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/sync")) { request -> OHHTTPStubsResponse in
-            return OHHTTPStubsResponse(
-                fileAtPath: OHPathForFile("simple-update-next-sync.json", type(of: self))!,
-                statusCode: 200,
-                headers: ["Content-Type": "application/json"]
-            )
-        }.name = "Next sync: updated value."
-
-        client.sync(for: syncSpace) { result in
-            switch result {
-            case .success:
-                self.managedObjectContext.perform {
-                    do {
-                        let helloSingleRecord: [SingleRecord] = try self.store.fetchAll(type: SingleRecord.self,  predicate: NSPredicate(format: "id == 'aNt2d7YR4AIwEAMcG4OwI'"))
-                        expect(helloSingleRecord.count).to(equal(1))
-                        expect(helloSingleRecord.first!.textBody).to(equal("Hello FooBar"))
-                    } catch {
-                        XCTAssert(false, "Fetching posts should not throw an error")
-                    }
-                    nextExpectation.fulfill()
-                }
-            case .error(let error):
-                fail("\(error)")
-                nextExpectation.fulfill()
-            }
-        }
-
-        waitForExpectations(timeout: 10.0, handler: nil)
+//
+//        // ============================NEXT SYNC==================================================
+//        let nextExpectation = self.expectation(description: "Next sync expectation")
+//
+//        stub(condition: isPath("/spaces/smf0sqiu0c5s/sync")) { request -> OHHTTPStubsResponse in
+//            return OHHTTPStubsResponse(
+//                fileAtPath: OHPathForFile("simple-update-next-sync.json", type(of: self))!,
+//                statusCode: 200,
+//                headers: ["Content-Type": "application/json"]
+//            )
+//        }.name = "Next sync: updated value."
+//
+//        client.sync(for: syncSpace) { result in
+//            switch result {
+//            case .success:
+//                self.managedObjectContext.perform {
+//                    do {
+//                        let helloSingleRecord: [SingleRecord] = try self.store.fetchAll(type: SingleRecord.self,  predicate: NSPredicate(format: "id == 'aNt2d7YR4AIwEAMcG4OwI'"))
+//                        expect(helloSingleRecord.count).to(equal(1))
+//                        expect(helloSingleRecord.first!.textBody).to(equal("Hello FooBar"))
+//                    } catch {
+//                        XCTAssert(false, "Fetching posts should not throw an error")
+//                    }
+//                    nextExpectation.fulfill()
+//                }
+//            case .error(let error):
+//                fail("\(error)")
+//                nextExpectation.fulfill()
+//            }
+//        }
+//
+//        waitForExpectations(timeout: 10.0, handler: nil)
     }
 
     func testClearingFieldSetsItToNil() {

@@ -72,6 +72,7 @@ class ContentfulPersistenceTests: XCTestCase {
         let jsonDecoder = JSONDecoder.withoutLocalizationContext()
         let space = try! jsonDecoder.decode(Space.self, from: spaceData)
         jsonDecoder.update(with: LocalizationContext(locales: space.locales)!)
+
         let authorData = TestHelpers.jsonData("single-author")
 
         let author = try! jsonDecoder.decode(Entry.self, from: authorData)
@@ -91,6 +92,7 @@ class ContentfulPersistenceTests: XCTestCase {
         let jsonDecoder = JSONDecoder.withoutLocalizationContext()
         let space = try! jsonDecoder.decode(Space.self, from: spaceData)
         jsonDecoder.update(with: LocalizationContext(locales: space.locales)!)
+
         let authorData = TestHelpers.jsonData("single-author")
 
         let author = try! jsonDecoder.decode(Entry.self, from: authorData)
@@ -133,7 +135,6 @@ class ContentfulPersistenceTests: XCTestCase {
         let expectation = self.expectation(description: "Can store Asset Persistables expecatation")
 
         self.client.sync { result in
-
             self.managedObjectContext.perform {
                 do {
                     let assets: [Asset] = try self.store.fetchAll(type: Asset.self, predicate: NSPredicate(value: true))

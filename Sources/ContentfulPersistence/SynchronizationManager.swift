@@ -44,6 +44,13 @@ public enum LocalizationScheme {
     case all
 }
 
+public extension Client {
+
+    func setContentTypeClasses(_ contentTypeClasses: [EntryDecodable.Type]) {
+        jsonDecoder.setContentTypes(contentTypeClasses)
+    }
+}
+
 /// Provides the ability to sync content from Contentful to a persistence store.
 public class SynchronizationManager: PersistenceIntegration {
 
@@ -117,7 +124,7 @@ public class SynchronizationManager: PersistenceIntegration {
         if let syncToken = self.syncToken {
             client?.sync(for: SyncSpace(syncToken: syncToken), then: safeCompletion)
         } else {
-            client?.sync(for: SyncSpace(), then: safeCompletion)
+            client?.sync(then: safeCompletion)
         }
     }
 
