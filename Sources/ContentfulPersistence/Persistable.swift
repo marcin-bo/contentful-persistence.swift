@@ -32,6 +32,7 @@ public struct PersistenceModel {
 /**
  Base protocol for all `AssetPersistable` and `EntryPersistable`.
  */
+
 // Protocols are marked with @objc attribute for two reasons:
 // 1) CoreData requires that model classes inherit from `NSManagedObject`
 // 2) @objc enables optional protocol methods that don't require implementation.
@@ -64,7 +65,7 @@ public protocol SyncSpacePersistable: class {
  Conform to `AssetPersistable` protocol to enable mapping of your Contentful media Assets to
  your `NSManagedObject` subclass.
  */
-public protocol AssetPersistable: ResourcePersistable, Media {
+public protocol AssetPersistable: ResourcePersistable, AssetProtocol {
     /// URL of the Asset.
     var urlString: String? { get set }
 
@@ -74,9 +75,6 @@ public protocol AssetPersistable: ResourcePersistable, Media {
     /// The description of the asset. Named `assetDescription` to avoid clashing with `description`
     /// property that all NSObject's have.
     var assetDescription: String? { get set }
-
-    /// URL of the Asset.
-    var urlString: String? { get set }
 
     /// The name of the underlying binary media file.
     var fileName: String? { get set }

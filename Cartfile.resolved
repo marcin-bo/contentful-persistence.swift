@@ -1,4 +1,4 @@
-git "/Users/jpwright/Contentful/swift/SDK/contentful.swift" "8566ef7ccdbccb4d0ba0d87e5f1af454f9c00a9f"
+git "/Users/jpwright/Contentful/swift/SDK/contentful.swift" "2e2c08e7eb45f3625ccd4aab8bdbd6bb7ed3223a"
 github "AliSoftware/OHHTTPStubs" "6.1.0"
 github "JensRavens/Interstellar" "2.1.0"
-github "Quick/Nimble" "v7.1.0"
+github "Quick/Nimble" "v7.1.1"

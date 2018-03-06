@@ -273,12 +273,13 @@ public class SynchronizationManager: PersistenceIntegration {
         persistable.id                  = asset.id// Set the localeCode.
         persistable.localeCode          = asset.currentlySelectedLocale.code
         persistable.title               = asset.title
-        persistable.assetDescription    = asset.description
+        persistable.assetDescription    = asset.assetDescription
         persistable.updatedAt           = asset.sys.updatedAt
         persistable.createdAt           = asset.sys.updatedAt
         persistable.urlString           = asset.urlString
         persistable.fileName            = asset.file?.fileName
         persistable.fileType            = asset.file?.contentType
+
         if let size = asset.file?.details?.size {
             persistable.size = NSNumber(value: size)
         }

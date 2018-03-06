@@ -28,7 +28,7 @@ class NoDataCache: DataCacheProtocol {
         self.store = persistenceStore
     }
 
-    fileprivate func itemsOf(_ types: [ContentSysPersistable.Type], identifier: String) -> EntryPersistable? {
+    fileprivate func itemsOf(_ types: [ResourcePersistable.Type], identifier: String) -> EntryPersistable? {
         let predicate = ContentfulPersistence.predicate(for: identifier)
 
         let items: [EntryPersistable] = types.compactMap {
@@ -54,7 +54,7 @@ class NoDataCache: DataCacheProtocol {
 /// Implemented using `NSCache`
 class DataCache: DataCacheProtocol {
 
-    public static func cacheKey(for resource: ContentSysPersistable) -> String {
+    public static func cacheKey(for resource: ResourcePersistable) -> String {
         let cacheKey =  resource.id + "_" + resource.localeCode
         return cacheKey
     }
@@ -97,7 +97,7 @@ class DataCache: DataCacheProtocol {
         return target
     }
 
-    fileprivate static func cacheResource(in cache: NSCache<AnyObject, AnyObject>, resource: ContentSysPersistable) {
+    fileprivate static func cacheResource(in cache: NSCache<AnyObject, AnyObject>, resource: ResourcePersistable) {
         let cacheKey = DataCache.cacheKey(for: resource)
         cache.setObject(resource as AnyObject, forKey: cacheKey as AnyObject)
     }
