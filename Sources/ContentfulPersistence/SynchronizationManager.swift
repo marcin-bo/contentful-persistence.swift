@@ -220,8 +220,51 @@ public class SynchronizationManager: PersistenceIntegration {
                 }
             }
         }
+        persistRelationshipsToResolve()
     }
-
+    
+    //////////// Quick fix of CF sync issues ///////////////
+    // @see https://github.com/contentful/contentful-persistence.swift/issues/58
+    private var relationshipsToResolvePersistURL: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("CF_relationshipsToResolve.data")
+    }
+    
+    private func persistRelationshipsToResolve() {
+        guard let data = try? JSONSerialization.data(withJSONObject: relationshipsToResolve, options: []) else {
+            return
+        }
+        try? data.write(to: relationshipsToResolvePersistURL, options: [])
+    }
+    
+    private func getPersistedRelationshipsToResolve() -> [String: [FieldName: Any]]? {
+        guard let data = try? Data(contentsOf: relationshipsToResolvePersistURL, options: []) else {
+            return nil
+        }
+        
+        guard let relationships = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: [FieldName: Any]] else {
+            return nil
+        }
+        
+        return relationships
+    }
+    
+    public func resolvePendingRelationships() {
+        guard let relationships = getPersistedRelationshipsToResolve(), !relationships.isEmpty else {
+            return
+        }
+        
+        print("SyncSpace: resolvePendingRelationships: \(relationships)")
+        
+        persistentStore.performAndWait { [weak self] in
+            self?.relationshipsToResolve = relationships
+            self?.resolveRelationships()
+            self?.save()
+        }
+    }
+    //////////// End Quick fix of CF sync issues ///////////////
+    
+    
     // MARK: - PersistenceDelegate
 
     /**
