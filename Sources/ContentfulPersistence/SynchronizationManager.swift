@@ -254,8 +254,6 @@ public class SynchronizationManager: PersistenceIntegration {
             return
         }
         
-        print("SyncSpace: resolvePendingRelationships: \(relationships)")
-        
         persistentStore.performAndWait { [weak self] in
             self?.relationshipsToResolve = relationships
             self?.resolveRelationships()
