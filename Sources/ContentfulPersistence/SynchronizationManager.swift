@@ -224,6 +224,8 @@ public class SynchronizationManager: PersistenceIntegration {
     }
     
     //////////// Quick fix of CF sync issues ///////////////
+    public var resolveRelationshipErrorHandler: ([String: [FieldName: Any]]) -> () = { data in }
+    
     // @see https://github.com/contentful/contentful-persistence.swift/issues/58
     private var relationshipsToResolvePersistURL: URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
@@ -231,6 +233,11 @@ public class SynchronizationManager: PersistenceIntegration {
     }
     
     private func persistRelationshipsToResolve() {
+        if !JSONSerialization.isValidJSONObject(relationshipsToResolve) {
+            resolveRelationshipErrorHandler(relationshipsToResolve)
+            return
+        }
+        
         guard let data = try? JSONSerialization.data(withJSONObject: relationshipsToResolve, options: []) else {
             return
         }
