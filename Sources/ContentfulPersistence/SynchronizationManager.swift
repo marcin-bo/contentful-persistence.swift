@@ -249,8 +249,9 @@ public class SynchronizationManager: PersistenceIntegration {
         return relationships
     }
     
-    public func resolvePendingRelationships() {
+    public func resolvePendingRelationships(completion: @escaping (() -> ())) {
         guard let relationships = getPersistedRelationshipsToResolve(), !relationships.isEmpty else {
+            completion()
             return
         }
         
@@ -258,6 +259,7 @@ public class SynchronizationManager: PersistenceIntegration {
             self?.relationshipsToResolve = relationships
             self?.resolveRelationships()
             self?.save()
+            completion()
         }
     }
     //////////// End Quick fix of CF sync issues ///////////////
