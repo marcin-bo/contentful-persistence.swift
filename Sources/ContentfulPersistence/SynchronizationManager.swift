@@ -107,7 +107,12 @@ public class SynchronizationManager: PersistenceIntegration {
      Execute queries on your local data store in the callback for this method.
      */
     public func sync(then completion: @escaping ResultsHandler<SyncSpace>) {
-
+        resolvePendingRelationships { [weak self] in
+            self?.syncSafely(then: completion)
+        }
+    }
+    
+    private func syncSafely(then completion: @escaping ResultsHandler<SyncSpace>) {
         let safeCompletion: ResultsHandler<SyncSpace> = { [weak self] result in
             self?.persistentStore.performBlock {
                 completion(result)
@@ -220,57 +225,8 @@ public class SynchronizationManager: PersistenceIntegration {
                 }
             }
         }
-        persistRelationshipsToResolve()
+        savePendingRelationships()
     }
-    
-    //////////// Quick fix of CF sync issues ///////////////
-    public var resolveRelationshipErrorHandler: ([String: [FieldName: Any]]) -> () = { data in }
-    
-    // @see https://github.com/contentful/contentful-persistence.swift/issues/58
-    private var relationshipsToResolvePersistURL: URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0].appendingPathComponent("CF_relationshipsToResolve.data")
-    }
-    
-    private func persistRelationshipsToResolve() {
-        if !JSONSerialization.isValidJSONObject(relationshipsToResolve) {
-            resolveRelationshipErrorHandler(relationshipsToResolve)
-            return
-        }
-        
-        guard let data = try? JSONSerialization.data(withJSONObject: relationshipsToResolve, options: []) else {
-            return
-        }
-        try? data.write(to: relationshipsToResolvePersistURL, options: [])
-    }
-    
-    private func getPersistedRelationshipsToResolve() -> [String: [FieldName: Any]]? {
-        guard let data = try? Data(contentsOf: relationshipsToResolvePersistURL, options: []) else {
-            return nil
-        }
-        
-        guard let relationships = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: [FieldName: Any]] else {
-            return nil
-        }
-        
-        return relationships
-    }
-    
-    public func resolvePendingRelationships(completion: @escaping (() -> ())) {
-        guard let relationships = getPersistedRelationshipsToResolve(), !relationships.isEmpty else {
-            completion()
-            return
-        }
-        
-        persistentStore.performAndWait { [weak self] in
-            self?.relationshipsToResolve = relationships
-            self?.resolveRelationships()
-            self?.save()
-            completion()
-        }
-    }
-    //////////// End Quick fix of CF sync issues ///////////////
-    
     
     // MARK: - PersistenceDelegate
 
@@ -421,6 +377,55 @@ public class SynchronizationManager: PersistenceIntegration {
     }
 
 
+    // MARK: Persisting relationships to resolve
+    
+    private var pendingRelationshipsURL: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("CF_relationshipsToResolve.data")
+    }
+    
+    private func savePendingRelationships() {
+        if relationshipsToResolve.isEmpty {
+            try? FileManager.default.removeItem(at: pendingRelationshipsURL)
+            return
+        }
+        
+        if !JSONSerialization.isValidJSONObject(relationshipsToResolve) {
+            return
+        }
+        
+        guard let data = try? JSONSerialization.data(withJSONObject: relationshipsToResolve, options: []) else {
+            return
+        }
+        try? data.write(to: pendingRelationshipsURL, options: [])
+    }
+    
+    private func getPendingRelationships() -> [String: [FieldName: Any]]? {
+        guard let data = try? Data(contentsOf: pendingRelationshipsURL, options: []) else {
+            return nil
+        }
+        
+        guard let relationships = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: [FieldName: Any]] else {
+            return nil
+        }
+        
+        return relationships
+    }
+    
+    private func resolvePendingRelationships(completion: @escaping (() -> ())) {
+        guard let relationships = getPendingRelationships(), !relationships.isEmpty else {
+            completion()
+            return
+        }
+        
+        persistentStore.performAndWait { [weak self] in
+            self?.relationshipsToResolve = relationships
+            self?.resolveRelationships()
+            self?.save()
+            completion()
+        }
+    }
+    
     // MARK: Private
 
     // Dictionary mapping source Entry id's concatenated with locale code to a dictionary with linking fieldName to target entry id's.
